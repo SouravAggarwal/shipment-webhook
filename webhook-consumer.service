@@ -1,0 +1,15 @@
+[Unit]
+Description=AI Webhook SQS Consumer
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/ai_webhook_service
+EnvironmentFile=/home/ubuntu/ai_webhook_service/.env
+ExecStart=/home/ubuntu/ai_webhook_service/venv/bin/python manage.py consume_webhooks
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

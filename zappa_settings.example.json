@@ -1,0 +1,27 @@
+{
+    "dev": {
+        "django_settings": "config.settings",
+        "project_name": "ai-webhook-service",
+        "runtime": "python3.12",
+        "s3_bucket": "ai-webhook-service-zappa-deploy",
+        "aws_region": "us-east-1",
+        "timeout_seconds": 30,
+        "memory_size": 512,
+        "keep_warm": false,
+        "environment_variables": {
+            "SECRET_KEY": "secret",
+            "DEBUG": "False",
+            "ALLOWED_HOSTS": ".execute-api.us-east-1.amazonaws.com",
+            "AWS_REGION": "us-east-1",
+            "SQS_QUEUE_URL": "https://sqs.us-east-1.amazonaws.com/test_id/ShipmentQueue",
+            "OPENAI_API_KEY": "sk-proj-2Deq2hIxkWASOLBLS8Y-...",
+            "OPENAI_MODEL": "gpt-4o-mini",
+            "LLM_CONFIDENCE_THRESHOLD": "0.7",
+            "VENDOR_CREDENTIALS": "username:password"
+        },
+        "exclude": [
+            "*.pyc", "__pycache__", ".git", ".env", "db.sqlite3",
+            "venv", ".venv", "tests", "*.md", ".gitignore"
+        ]
+    }
+}
