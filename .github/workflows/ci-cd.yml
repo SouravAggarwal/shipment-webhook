@@ -51,19 +51,16 @@ jobs:
             pip install -r requirements.txt --quiet
             python manage.py migrate --verbosity=0
 
-            # Stop existing processes
-            pkill -f "manage.py runserver" || true
-            pkill -f "manage.py consume_webhooks" || true
-            sleep 2
+            # Copy and reload service files
+            sudo cp webhook-api.service /etc/systemd/system/
+            sudo cp webhook-consumer.service /etc/systemd/system/
+            sudo systemctl daemon-reload
 
-            # Start Django API server as daemon (port 8000)
-            nohup python manage.py runserver 0.0.0.0:8000 > /home/${{ secrets.EC2_USER }}/api.log 2>&1 &
-            disown
+            # Restart both services
+            sudo systemctl enable webhook-api webhook-consumer
+            sudo systemctl restart webhook-api webhook-consumer
 
-            # Start SQS consumer as daemon
-            nohup python manage.py consume_webhooks > /home/${{ secrets.EC2_USER }}/consumer.log 2>&1 &
-            disown
-
-            sleep 3
-            echo "Done. Processes running:"
-            ps aux | grep manage.py | grep -v grep || true
+            echo "=== API Server ==="
+            sudo systemctl status webhook-api --no-pager
+            echo "=== SQS Consumer ==="
+            sudo systemctl status webhook-consumer --no-pager
