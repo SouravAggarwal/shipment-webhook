@@ -5,9 +5,9 @@ After=network.target
 [Service]
 Type=simple
 User=ubuntu
-WorkingDirectory=/home/ubuntu/ai_webhook_service
-EnvironmentFile=/home/ubuntu/ai_webhook_service/.env
-ExecStart=/home/ubuntu/ai_webhook_service/venv/bin/python manage.py consume_webhooks
+WorkingDirectory=/home/ubuntu/shipment-webhook
+EnvironmentFile=/home/ubuntu/shipment-webhook/.env
+ExecStart=/home/ubuntu/venv/bin/python manage.py consume_webhooks
 Restart=always
 RestartSec=10
 

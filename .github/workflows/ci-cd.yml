@@ -57,9 +57,13 @@ jobs:
             sleep 2
 
             # Start Django API server as daemon (port 8000)
-            nohup python manage.py runserver 0.0.0.0:8000 >> /home/${{ secrets.EC2_USER }}/api.log 2>&1 &
-            echo "API server started (PID: $!)"
+            nohup python manage.py runserver 0.0.0.0:8000 > /home/${{ secrets.EC2_USER }}/api.log 2>&1 &
+            disown
 
             # Start SQS consumer as daemon
-            nohup python manage.py consume_webhooks >> /home/${{ secrets.EC2_USER }}/consumer.log 2>&1 &
-            echo "Consumer started (PID: $!)"
+            nohup python manage.py consume_webhooks > /home/${{ secrets.EC2_USER }}/consumer.log 2>&1 &
+            disown
+
+            sleep 3
+            echo "Done. Processes running:"
+            ps aux | grep manage.py | grep -v grep || true
