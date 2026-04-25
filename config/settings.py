@@ -15,7 +15,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-only-change-in-product
 
 DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "yes")
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,.execute-api.us-east-1.amazonaws.com").split(",")
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition

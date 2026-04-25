@@ -32,31 +32,6 @@ jobs:
           DEBUG: "True"
         run: python manage.py test webhooks --verbosity=2
 
-  deploy-api:
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Deploy API to Lambda via Zappa
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-        run: |
-          # First deploy: zappa deploy dev
-          # Subsequent deploys:
-          zappa update dev || zappa deploy dev
-
   deploy-consumer:
     runs-on: ubuntu-latest
     needs: test
@@ -74,4 +49,16 @@ jobs:
             source venv/bin/activate
             pip install -r requirements.txt --quiet
             python manage.py migrate --verbosity=0
-            sudo systemctl restart webhook-consumer
+
+            # Stop existing processes
+            pkill -f "manage.py runserver" || true
+            pkill -f "manage.py consume_webhooks" || true
+            sleep 2
+
+            # Start Django API server as daemon (port 8000)
+            nohup python manage.py runserver 0.0.0.0:8000 >> /home/${{ secrets.EC2_USER }}/api.log 2>&1 &
+            echo "API server started (PID: $!)"
+
+            # Start SQS consumer as daemon
+            nohup python manage.py consume_webhooks >> /home/${{ secrets.EC2_USER }}/consumer.log 2>&1 &
+            echo "Consumer started (PID: $!)"
