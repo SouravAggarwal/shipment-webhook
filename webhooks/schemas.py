@@ -1,5 +1,3 @@
-"""Pydantic models for LLM structured output."""
-
 from enum import Enum
 from typing import Optional
 

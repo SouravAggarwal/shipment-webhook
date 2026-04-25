@@ -20,14 +20,13 @@ class WebhookProcessor:
         self.sqs = AWSSQSService()
 
     def process(self, webhook_id: int) -> None:
-        """Process a single webhook: dedup check, classify, validate, store."""
+        """Process a single webhook: dedup check, classify, normalize, and store."""
         try:
             webhook = RawWebhook.objects.get(id=webhook_id)
         except RawWebhook.DoesNotExist:
             logger.error("Webhook %s not found", webhook_id)
             return
 
-        print(f"Processing1 webhook {webhook_id} with status {webhook.status} {webhook.payload}")
         if webhook.status != WebhookStatus.RECEIVED:
             logger.info("Webhook %s status is %s, skipping", webhook_id, webhook.status)
             return
@@ -39,11 +38,9 @@ class WebhookProcessor:
             return
 
         self._update_status(webhook, WebhookStatus.PROCESSING)
-        print(f"Processing2 webhook {webhook_id} with status {webhook.status} {webhook.payload}")
 
         try:
             result = self._classify(webhook.payload)
-            print(f"Classification result for webhook {webhook_id}: {result}")
             
             if result.confidence < self.threshold or result.classification == ClassificationEnum.UNCLASSIFIED:
                 self._update_status(webhook, WebhookStatus.UNCLASSIFIED)
@@ -62,7 +59,7 @@ class WebhookProcessor:
             raise
 
     def consume_from_sqs(self) -> None:
-        """Long-polling SQS consumer loop."""
+        """Long-polling SQS"""
         queue_url = settings.SQS_QUEUE_URL
         logger.info("Starting SQS consumer on %s...", queue_url)
 
@@ -78,10 +75,8 @@ class WebhookProcessor:
                 except Exception:
                     logger.exception("Failed to process SQS message: %s", msg.get("MessageId"))
 
-    # ── Private helpers ─────────────────────────────────────────────
 
     def _is_duplicate(self, webhook: RawWebhook) -> bool:
-        """Check if an earlier webhook with the same payload_hash was already processed."""
         payload_hash = canonical_json_hash(webhook.vendor.username, webhook.payload)
         webhook.payload_hash = payload_hash
         webhook.save(update_fields=["payload_hash", "updated_at"])
@@ -97,7 +92,6 @@ class WebhookProcessor:
         ).exclude(id=webhook.id).exists()
 
     def _classify(self, payload: dict) -> WebhookClassification:
-        """Classify a webhook payload via LLM."""
         return self.llm.classify(
             prompt=CLASSIFICATION_PROMPT,
             user_input=f"Webhook payload:\n{payload}",

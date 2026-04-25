@@ -1,12 +1,6 @@
-"""Generic AWS SQS service for message queuing.
-
-Reusable across multiple apps and services — accepts queue_url per call.
-"""
-
 import json
 import logging
 from typing import Any
-
 import boto3
 from django.conf import settings
 
@@ -14,8 +8,6 @@ logger = logging.getLogger(__name__)
 
 
 class AWSSQSService:
-    """Generic AWS SQS client. Queue URL is passed per operation."""
-
     def __init__(self):
         self._client = boto3.client(
             "sqs",
@@ -26,7 +18,6 @@ class AWSSQSService:
 
     def push_message(self, queue_url: str, body: dict[str, Any]) -> str:
         """Push a JSON message to the specified SQS queue.
-
         Returns the SQS MessageId.
         """
         response = self._client.send_message(
@@ -40,10 +31,6 @@ class AWSSQSService:
     def receive_messages(
         self, queue_url: str, max_messages: int = 10, wait_seconds: int = 20,
     ) -> list[dict]:
-        """Receive messages from the specified SQS queue (long-polling).
-
-        Returns list of messages with 'MessageId', 'Body', 'ReceiptHandle'.
-        """
         response = self._client.receive_message(
             QueueUrl=queue_url,
             MaxNumberOfMessages=max_messages,

@@ -115,7 +115,10 @@ HTTP BasicAuth user = vendor identity. The hash includes the username, so two ve
 ### 4. Single LLM Call + Strict Validation
 One `ChatOpenAI.with_structured_output()` call classifies and extracts data. Python-side validation (status mapping, timestamp parsing, amount checks) catches LLM hallucinations. Confidence below 0.7 → `UNCLASSIFIED`.
 
-### 5. Generic Reusable Services
+### 5. LLM Rate Limiting via Semaphore
+A `threading.Semaphore(5)` in `LLMService` limits concurrent LLM calls to 5 at a time. Extra calls block until a slot is available — preventing API rate limit errors without dropping requests.
+
+### 6. Generic Reusable Services
 `LLMService` (in `common/`) and `AWSSQSService` (in `common/`) are fully generic and can be reused by other apps.
 
 ---

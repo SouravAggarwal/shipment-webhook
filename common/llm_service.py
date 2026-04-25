@@ -1,19 +1,16 @@
-"""Generic LLM service for structured output classification.
-
-Reusable across multiple apps — pass your own prompt and output schema.
-"""
-
 import logging
-from typing import Any, Type
-
+import threading
+from typing import Type
 from django.conf import settings
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
+# Limits concurrent LLM calls
+_llm_semaphore = threading.Semaphore(5)
+
 
 class LLMService:
-    """Generic LangChain OpenAI service for structured output."""
 
     def __init__(
         self,
@@ -43,17 +40,18 @@ class LLMService:
         Returns:
             An instance of `output_schema` populated by the LLM.
         """
-        from langchain_openai import ChatOpenAI
+        with _llm_semaphore:
+            from langchain_openai import ChatOpenAI
 
-        llm = ChatOpenAI(
-            model=self.model,
-            api_key=self.api_key,
-            temperature=self.temperature,
-            request_timeout=self.timeout,
-        )
-        structured_llm = llm.with_structured_output(output_schema)
-        messages = [
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": user_input},
-        ]
-        return structured_llm.invoke(messages)
+            llm = ChatOpenAI(
+                model=self.model,
+                api_key=self.api_key,
+                temperature=self.temperature,
+                request_timeout=self.timeout,
+            )
+            structured_llm = llm.with_structured_output(output_schema)
+            messages = [
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": user_input},
+            ]
+            return structured_llm.invoke(messages)

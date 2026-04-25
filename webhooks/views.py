@@ -1,7 +1,4 @@
-"""Webhook ingestion API view."""
-
 import logging
-
 from django.conf import settings
 from rest_framework import status
 from rest_framework.authentication import BasicAuthentication
@@ -9,7 +6,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from webhooks.utils import canonical_json_hash
 from common.sqs_service import AWSSQSService
 from webhooks.models import RawWebhook, WebhookStatus
