@@ -382,13 +382,15 @@ The pipeline is defined in `.github/workflows/ci-cd.yml` and triggers on every p
 
 Go to your repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**:
 
-| Secret | Value | Used By |
+| Secret | How to get it | Used By |
 |---|---|---|
-| `AWS_ACCESS_KEY_ID` | IAM access key | `deploy-api` (Zappa) |
-| `AWS_SECRET_ACCESS_KEY` | IAM secret key | `deploy-api` (Zappa) |
-| `EC2_HOST` | EC2 public IP (e.g., `54.123.45.67`) | `deploy-consumer` |
-| `EC2_USER` | SSH username (e.g., `ubuntu`) | `deploy-consumer` |
-| `EC2_SSH_KEY` | Full private SSH key (PEM format) | `deploy-consumer` |
+| `AWS_ACCESS_KEY_ID` | From your IAM user credentials (same as in `.env` file) | `deploy-api` |
+| `AWS_SECRET_ACCESS_KEY` | From your IAM user credentials (same as in `.env` file) | `deploy-api` |
+| `EC2_HOST` | AWS Console → EC2 → Instances → copy **Public IPv4 address** | `deploy-consumer` |
+| `EC2_USER` | Default SSH user for the AMI (e.g., `ubuntu` for Ubuntu AMI) | `deploy-consumer` |
+| `EC2_SSH_KEY` | AWS Console → EC2 → **Key Pairs** → Create key pair (.pem) → paste the full `.pem` file contents | `deploy-consumer` |
+
+> **Note:** The `test` job requires no secrets — all tests are fully mocked. Secrets are only needed for the two deploy jobs.
 
 ---
 
